@@ -262,7 +262,7 @@ class BeldexLibAppBridgeClass extends MyMoneroCoreBridgeEssentialsClass
 		}
 
 	}
-	async__register_funds(fn_args)
+	async async__register_funds(fn_args)
 	{
 		const self = this;
 		// register cb handler fns to wait for calls with thi task id
@@ -431,6 +431,8 @@ class BeldexLibAppBridgeClass extends MyMoneroCoreBridgeEssentialsClass
 		} else {
 			// TODO: assert Object.keys(ret).length == 0
 		}
+
+		return ret;
 
 	}
 }

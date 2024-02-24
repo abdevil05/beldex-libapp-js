@@ -351,7 +351,7 @@ void emscr_SendFunds_bridge::send_funds(const string &args_string)
 	(*controller_ptr).handle();
 }
 //
-register_master_node_result emscr_SendFunds_bridge::register_funds(const string &args_string)
+std::pair<register_master_node_result, std::string> emscr_SendFunds_bridge::register_funds(const string &args_string)
 {
 
 	std::vector<std::string> local_args;
@@ -370,7 +370,7 @@ register_master_node_result emscr_SendFunds_bridge::register_funds(const string 
 			result.status = register_master_node_result_status::no_flash;
 			// result.msg += tr("Master node registrations cannot use flash priority");
 			// send_app_handler__error_msg(error_ret_json_from_message("Master node registrations cannot use flash priority"));
-			return result;
+			return std::make_pair(result, args_string);
 		}
 
 		if (local_args.size() < 6)
@@ -378,7 +378,7 @@ register_master_node_result emscr_SendFunds_bridge::register_funds(const string 
 			result.status = register_master_node_result_status::insufficient_num_args;
 			// result.msg += tr("\nPrepare this command in the daemon with the prepare_registration command");
 			// result.msg += tr("\nThis command must be run from the daemon that will be acting as a master node");
-			return result;
+			return std::make_pair(result, args_string);
 		}
 	}
 
@@ -392,7 +392,7 @@ register_master_node_result emscr_SendFunds_bridge::register_funds(const string 
 	{
 		result.status = register_master_node_result_status::network_version_query_failed;
 		// result.msg    = ERR_MSG_NETWORK_VERSION_QUERY_FAILED;
-		return result;
+		return std::make_pair(result, args_string);
 	}
 
 	uint64_t staking_requirement = 0;
@@ -417,7 +417,7 @@ register_master_node_result emscr_SendFunds_bridge::register_funds(const string 
 		{
 			result.status = register_master_node_result_status::convert_registration_args_failed;
 			// result.msg = tr("Could not convert registration args, reason: ") + contributor_args.err_msg;
-			return result;
+			return std::make_pair(result, args_string);
 		}
 	}
 
@@ -451,28 +451,28 @@ register_master_node_result emscr_SendFunds_bridge::register_funds(const string 
 			{
 				result.status = register_master_node_result_status::registration_timestamp_expired;
 				// result.msg = tr("The registration timestamp has expired.");
-				return result;
+				return std::make_pair(result, args_string);
 			}
 		}
 		catch (const std::exception &e)
 		{
 			result.status = register_master_node_result_status::registration_timestamp_expired;
 			// result.msg = tr("The registration timestamp failed to parse: ") + local_args[timestamp_index];
-			return result;
+			return std::make_pair(result, args_string);
 		}
 
 		if (!tools::hex_to_type(local_args[key_index], master_node_key))
 		{
 			result.status = register_master_node_result_status::master_node_key_parse_fail;
 			// result.msg = tr("Failed to parse master node pubkey");
-			return result;
+			return std::make_pair(result, args_string);
 		}
 
 		if (!tools::hex_to_type(local_args[signature_index], signature))
 		{
 			result.status = register_master_node_result_status::master_node_signature_parse_fail;
 			// result.msg = tr("Failed to parse master node signature");
-			return result;
+			return std::make_pair(result, args_string);
 		}
 	}
 
@@ -577,8 +577,8 @@ register_master_node_result emscr_SendFunds_bridge::register_funds(const string 
 	// }
 
 	// assert(result.status != register_master_node_result_status::invalid);
-	result.args_string = args_string;
-	return result;
+	// result.args_string = args_string;
+	return std::make_pair(result, args_string);
 
 	// const operator_fee_k = 'value2'; // Replace with the desired key
 	// const operator_fee = myDynamicObject[operator_fee_k];
@@ -621,7 +621,8 @@ register_master_node_result emscr_SendFunds_bridge::register_funds(const string 
 	{
 		// (it will already have thrown an exception)
 		send_app_handler__error_msg(error_ret_json_from_message("Invalid JSON"));
-		return result;
+		return  std::make_pair(result, args_string);
+
 	}
 
 	const auto &destinations = json_root.get_child("destinations");
@@ -707,7 +708,8 @@ register_master_node_result emscr_SendFunds_bridge::register_funds(const string 
 	if (!controller_ptr)
 	{ // exception will be thrown if oom but JIC, since null ptrs are somehow legal in WASM
 		send_app_handler__error_msg("Out of memory (heap vals container)");
-		return result;
+		return std::make_pair(result, args_string);
+
 	}
 	(*controller_ptr).set__authenticate_fn([]() -> void { // authenticate_fn - this is not guaranteed to be called but it will be if requireAuthentication is true
 		EM_ASM_(

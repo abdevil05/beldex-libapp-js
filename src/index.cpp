@@ -145,15 +145,20 @@ string send_funds(const string &args_string)
         return serial_bridge_utils::error_ret_json_from_message(e.what());
     }
 }
-string register_funds(const string &args_string)
+std::string register_funds(const std::string &args_string)
 {
     try {
-        emscr_SendFunds_bridge::register_funds(args_string);
-        return string("{}");
+        auto [result, original_args] = emscr_SendFunds_bridge::register_funds(args_string);
+        if (result.status != register_master_node_result_status::success) {
+            // Handle the failure case
+            return serial_bridge_utils::error_ret_json_from_message("Registration failed: " + result.msg);
+        }
+        return "{}"; // Assuming successful registration returns an empty JSON object
     } catch (std::exception &e) {
         return serial_bridge_utils::error_ret_json_from_message(e.what());
     }
 }
+
 string send_cb__authentication(const string &args_string)
 {
     try {
