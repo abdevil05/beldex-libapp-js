@@ -47,6 +47,8 @@
 
 
 
+
+
 //
 namespace emscr_SendFunds_bridge
 {
@@ -61,7 +63,7 @@ namespace emscr_SendFunds_bridge
 	//
 	// Public interface:
 	void send_funds(const string &args_string);
-	std::pair<register_master_node_result, std::string> register_funds(const string &args_string);
+	std::string register_funds(const string &args_string);
 	void send_cb__authentication(const string &args_string);
 	void send_cb_I__got_unspent_outs(const string &args_string);
 	void send_cb_II__got_random_outs(const string &args_string);

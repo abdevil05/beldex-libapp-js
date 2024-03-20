@@ -47,6 +47,9 @@
 #include "SendFundsFormSubmissionController.hpp"
 #include "beldex_economy.h"
 
+// #include "nlohmann/json.hpp" // Include jsoncpp library
+
+// using json = nlohmann::json;
 
 // #include "walletf2.h"
 // #include "wallet2.h" // this header file cannot be include as it uses cpr as submodule that is responsible for calling rpc
@@ -192,6 +195,10 @@ void send_app_handler__success(const Success_RetVals &success_retVals)
 // From-JS function decls
 void emscr_SendFunds_bridge::send_funds(const string &args_string)
 {
+	std::cout << "Enter into send_funds" << std::endl;
+
+	std::cout << "args_string in send_funds :" << args_string << std::endl;
+
 	boost::property_tree::ptree json_root;
 	if (!parsed_json_root(args_string, json_root))
 	{
@@ -199,6 +206,8 @@ void emscr_SendFunds_bridge::send_funds(const string &args_string)
 		send_app_handler__error_msg(error_ret_json_from_message("Invalid JSON"));
 		return;
 	}
+
+	std::cout << "args_string in send_funds after parsing :" << args_string << std::endl;
 
 	const auto &destinations = json_root.get_child("destinations");
 	vector<string> dest_addrs, dest_amounts;
@@ -279,6 +288,7 @@ void emscr_SendFunds_bridge::send_funds(const string &args_string)
 		{
 			send_app_handler__success(retVals);
 		}};
+
 	controller_ptr = new SendFunds::FormSubmissionController{parameters}; // heap alloc
 	if (!controller_ptr)
 	{ // exception will be thrown if oom but JIC, since null ptrs are somehow legal in WASM
@@ -351,14 +361,161 @@ void emscr_SendFunds_bridge::send_funds(const string &args_string)
 	(*controller_ptr).handle();
 }
 //
-std::pair<register_master_node_result, std::string> emscr_SendFunds_bridge::register_funds(const string &args_string)
+std::string emscr_SendFunds_bridge::register_funds(const string &args_string)
 {
+	std::cout << "Enter into emscr_register_funds :" << std::endl;
 
+	boost::property_tree::ptree json_root;
+	if (!parsed_json_root(args_string, json_root))
+	{
+		// (it will already have thrown an exception)
+		send_app_handler__error_msg(error_ret_json_from_message("Invalid JSON"));
+		// return;
+	}
+
+	// std::cout << "args_string in send_funds after parsing :" << args_string << std::endl;
+
+	const auto &final_args = json_root.get_child("final_args");
 	std::vector<std::string> local_args;
-	local_args.push_back(args_string);
+	local_args.reserve(final_args.size());
+
+	for (const auto &arg : final_args)
+	{
+		local_args.emplace_back(arg.second.get_value<string>());
+	}
+
+	if (!local_args.empty())
+	{
+		local_args.erase(local_args.begin()); // Remove the first element
+	}
+	else
+	{
+		std::cout << "Vector is already empty." << std::endl;
+	}
+
+	std::cout << "Extracted final_args:" << std::endl;
+	for (const auto &x : local_args)
+	{
+		std::cout << x << std::endl;
+	}
+
+	std::string nettype_string = json_root.get<string>("nettype_string");
+	std::cout << "nettype_string: " << nettype_string << std::endl;
+
+	// std::cout << "args_string in register_funds as original form :" << args_string << std::endl;
+
+	// std::istringstream iss(args_string);
+
+	// std::vector<std::string> local_args;
+
+	// std::string token;
+
+	// while (iss >> token)
+	// {
+	// 	local_args.push_back(token);
+	// }
+	// for (auto x : local_args)
+	// {
+	// 	std::cout << "args_string in register_funds before parsing :" << x << std::endl;
+	// }
+
+	// boost::property_tree::ptree json_root;
+	// if (!parsed_json_root(args_string, json_root))
+	// {
+	// 	// (it will already have thrown an exception)
+	// 	send_app_handler__error_msg(error_ret_json_from_message("Invalid JSON"));
+	// 	// return;
+	// }
+
+	// std::cout << "args_string in register_funds after parsing :" << args_string << std::endl;
+    // std::cout << "args_string in register_funds as original form :" << args_string << std::endl;
+
+	// std::istringstream iss(args_string);
+
+	// std::vector<std::string> local_args;
+
+	// std::string token;
+
+	// while (iss >> token)
+	// {
+	// 	local_args.push_back(token);
+	// }
+	// for (auto x : local_args)
+	// {
+	// 	std::cout << "args_string in register_funds before parsing :" << x << std::endl;
+	// }
+
+	// boost::property_tree::ptree json_root;
+	// if (!parsed_json_root(args_string, json_root))
+	// {
+	// 	// (it will already have thrown an exception)
+	// 	send_app_handler__error_msg(error_ret_json_from_message("Invalid JSON"));
+	// 	// return;
+	// }
+
+	// std::cout << "args_string in register_funds after parsing :" << args_string << std::endl;
+
+	// for (auto x : local_args)
+	// {
+	// 	std::cout << "args_string in register_funds After parsing :" << x << std::endl;
+	// }
+	// std::istringstream iss(args_string);
+
+	// std::vector<std::string> local_args1;
+
+	// std::string token;
+
+	// while (iss >> token)
+	// {
+	// 	local_args1.push_back(token);
+	// }
+
+	// json j = json::parse(local_args1);
+
+	// std::vector<std::string> local_args = j["final_args"];
+
+	// std::cout << "before printing local args :" << std::endl;
+	// for (auto x : local_args)
+	// {
+	// 	std::cout << "local_args value : " << x << std::endl;
+	// }
+
+	// Parameters parameters{
+	// 	local_args,
+	// };
+	// for (auto x : local_args)
+	// {
+	// 	std::cout << "args_string in register_funds After parsing :" << x << std::endl;
+	// }
+	// std::istringstream iss(args_string);
+
+	// std::vector<std::string> local_args1;
+
+	// std::string token;
+
+	// while (iss >> token)
+	// {
+	// 	local_args1.push_back(token);
+	// }
+
+	// json j = json::parse(local_args1);
+
+	// std::vector<std::string> local_args = j["final_args"];
+
+	// std::cout << "before printing local args :" << std::endl;
+	// for (auto x : local_args)
+	// {
+	// 	std::cout << "local_args value : " << x << std::endl;
+	// }
+
+	// Parameters parameters{
+	// 	local_args,
+	// };
 
 	register_master_node_result result = {};
 	result.status = register_master_node_result_status::invalid;
+
+	std::cout << "Before Priority " << std::endl;
 
 	uint32_t priority = 0;
 	{
@@ -370,7 +527,7 @@ std::pair<register_master_node_result, std::string> emscr_SendFunds_bridge::regi
 			result.status = register_master_node_result_status::no_flash;
 			// result.msg += tr("Master node registrations cannot use flash priority");
 			// send_app_handler__error_msg(error_ret_json_from_message("Master node registrations cannot use flash priority"));
-			return std::make_pair(result, args_string);
+			// return std::make_pair(result, args_string);
 		}
 
 		if (local_args.size() < 6)
@@ -378,9 +535,11 @@ std::pair<register_master_node_result, std::string> emscr_SendFunds_bridge::regi
 			result.status = register_master_node_result_status::insufficient_num_args;
 			// result.msg += tr("\nPrepare this command in the daemon with the prepare_registration command");
 			// result.msg += tr("\nThis command must be run from the daemon that will be acting as a master node");
-			return std::make_pair(result, args_string);
+			// return std::make_pair(result, args_string);
 		}
 	}
+
+	std::cout << "After Priority " << std::endl;
 
 	// Here think about the hf-version and related validation check to it.
 
@@ -392,12 +551,18 @@ std::pair<register_master_node_result, std::string> emscr_SendFunds_bridge::regi
 	{
 		result.status = register_master_node_result_status::network_version_query_failed;
 		// result.msg    = ERR_MSG_NETWORK_VERSION_QUERY_FAILED;
-		return std::make_pair(result, args_string);
+		// return std::make_pair(result, args_string);
 	}
+
+	std::cout << "After hf_version " << std::endl;
 
 	uint64_t staking_requirement = 0;
 	master_nodes::contributor_args_t contributor_args = {};
+
+
+	std::vector<std::string> args;
 	{
+		std::cout << "Enter into contributor_args_t " << std::endl;
 
 		// {
 		//   if (!is_synced(1))
@@ -409,19 +574,72 @@ std::pair<register_master_node_result, std::string> emscr_SendFunds_bridge::regi
 		// }
 
 		staking_requirement = COIN * 10000;
-		std::vector<std::string> const args(local_args.begin(), local_args.begin() + local_args.size() - 3); // This line will be responsible for pushing all the data from 0-9 index into the vector args.
+		std::cout << "Staking Requirement: " << staking_requirement << std::endl;
 
-		contributor_args = master_nodes::convert_registration_args(nettype(), args, staking_requirement, *hf_version);
+		args = std::vector<std::string>(local_args.begin(), local_args.begin() + local_args.size() - 3); // Assigning values to args vector
+
+		for (const auto &x : args)
+		{
+			std::cout << "args vector value : " << x << std::endl;
+		}
+		std::cout << "After declaring args vector " << std::endl;
+
+		// std::cout << "Nettype: " << nettype() << std::endl;
+
+		int networkTypeInt = getNetworkType(nettype_string);
+		if (networkTypeInt != -1)
+		{
+			std::cout << "Integer value for " << nettype_string << " is: " << networkTypeInt << std::endl;
+		}
+		else
+		{
+			std::cerr << "Error: Unknown network type" << std::endl;
+		}
+
+		if (hf_version.has_value())
+		{
+			std::cout << "Hard fork version: " << static_cast<int>(*hf_version) << std::endl;
+		}
+		else
+		{
+			std::cout << "Hard fork version not available" << std::endl;
+		}
+       cryptonote::network_type networkType = static_cast<cryptonote::network_type>(networkTypeInt);
+
+	   contributor_args = master_nodes::convert_registration_args(networkType, args, staking_requirement, *hf_version);
 
 		if (!contributor_args.success)
 		{
 			result.status = register_master_node_result_status::convert_registration_args_failed;
 			// result.msg = tr("Could not convert registration args, reason: ") + contributor_args.err_msg;
-			return std::make_pair(result, args_string);
+			// return std::make_pair(result, args_string);
 		}
+		std::cout << "Exiting  from inside contributor_args_t " << std::endl;
 	}
 
+	bool successValue = contributor_args.success;
+	std::vector<cryptonote::account_public_address> addressesValue = contributor_args.addresses;
+	std::cout << "contributor_args.addresses size :" << contributor_args.addresses.size() << std::endl;
+	std::vector<uint64_t> portionsValue = contributor_args.portions;
+	std::cout << "contributor_args.addresses size :" << contributor_args.portions.size() << std::endl;
+
+	uint64_t portionsForOperatorValue = contributor_args.portions_for_operator;
+	std::string errMsgValue = contributor_args.err_msg;
+
+	std::cout << "exiting from outside contributor_args_t " << std::endl;
+
+	for (auto x : portionsValue)
+	{
+		std::cout << "portionValue =" << x << std::endl;
+	}
+
+	std::cout << "portions_for_operator=" << portionsForOperatorValue << std::endl;
+
 	cryptonote::account_public_address address = contributor_args.addresses[0];
+
+	std::cout << "Spend Public Key: " << address.m_spend_public_key << std::endl;
+	std::cout << "View Public Key: " << address.m_view_public_key << std::endl;
+
 	// THis is validation check ,we can implement this later
 	//  if (!contains_address(address))
 	//  {
@@ -451,30 +669,67 @@ std::pair<register_master_node_result, std::string> emscr_SendFunds_bridge::regi
 			{
 				result.status = register_master_node_result_status::registration_timestamp_expired;
 				// result.msg = tr("The registration timestamp has expired.");
-				return std::make_pair(result, args_string);
+				// return std::make_pair(result, args_string);
 			}
 		}
 		catch (const std::exception &e)
 		{
 			result.status = register_master_node_result_status::registration_timestamp_expired;
 			// result.msg = tr("The registration timestamp failed to parse: ") + local_args[timestamp_index];
-			return std::make_pair(result, args_string);
+			// return std::make_pair(result, args_string);
 		}
 
 		if (!tools::hex_to_type(local_args[key_index], master_node_key))
 		{
 			result.status = register_master_node_result_status::master_node_key_parse_fail;
 			// result.msg = tr("Failed to parse master node pubkey");
-			return std::make_pair(result, args_string);
+			// return std::make_pair(result, args_string);
 		}
 
 		if (!tools::hex_to_type(local_args[signature_index], signature))
 		{
 			result.status = register_master_node_result_status::master_node_signature_parse_fail;
 			// result.msg = tr("Failed to parse master node signature");
-			return std::make_pair(result, args_string);
+			// return std::make_pair(result, args_string);
 		}
 	}
+
+	std::map<std::string, cryptonote::account_public_address> addressNames;
+
+	std::ostringstream oss;
+	oss << "timestamp=\"" << local_args[timestamp_index] << "\", "
+		<< "master_node_pubkey=\"" << local_args[key_index] << "\", "
+		<< "signature=\"" << local_args[signature_index] << "\"";
+
+	// Concatenating addressesValue
+	oss << "addresses=[";
+	for (size_t i = 0; i < addressesValue.size(); ++i)
+	{
+		std::string name = "address" + std::to_string(i + 1);
+		addressNames[name] = addressesValue[i];
+		oss << "(" << name << ": " << addressesValue[i].m_spend_public_key << "," << addressesValue[i].m_view_public_key << ")";
+		if (i != addressesValue.size() - 1)
+			oss << ",";
+	}
+	oss << "], ";
+
+	// Concatenating portionsValue
+	oss << "portions=[";
+	for (size_t i = 0; i < portionsValue.size(); ++i)
+	{
+		oss << portionsValue[i];
+		if (i != portionsValue.size() - 1)
+			oss << ",";
+	}
+	oss << "], ";
+
+	// Concatenating portionsForOperatorValue
+	oss << "portions_for_operator=" << portionsForOperatorValue;
+
+	// Convert the ostringstream object to a string
+	std::string concatenatedString = oss.str();
+
+	return concatenatedString;
 
 	// try
 	// {
@@ -578,7 +833,7 @@ std::pair<register_master_node_result, std::string> emscr_SendFunds_bridge::regi
 
 	// assert(result.status != register_master_node_result_status::invalid);
 	// result.args_string = args_string;
-	return std::make_pair(result, args_string);
+	// return std::make_pair(result, args_string);
 
 	// const operator_fee_k = 'value2'; // Replace with the desired key
 	// const operator_fee = myDynamicObject[operator_fee_k];
@@ -616,14 +871,14 @@ std::pair<register_master_node_result, std::string> emscr_SendFunds_bridge::regi
 	// const signature_k = 'value13';
 	// const signature = myDynamicObject[signature_k];
 
-	boost::property_tree::ptree json_root;
-	if (!parsed_json_root(args_string, json_root))
-	{
-		// (it will already have thrown an exception)
-		send_app_handler__error_msg(error_ret_json_from_message("Invalid JSON"));
-		return  std::make_pair(result, args_string);
+	// boost::property_tree::ptree json_root;
+	// if (!parsed_json_root(args_string, json_root))
+	// {
+	// 	// (it will already have thrown an exception)
+	// 	send_app_handler__error_msg(error_ret_json_from_message("Invalid JSON"));
+	// 	// return  std::make_pair(result, args_string);
 
-	}
+	// }
 
 	const auto &destinations = json_root.get_child("destinations");
 	vector<string> dest_addrs, dest_amounts;
@@ -708,8 +963,7 @@ std::pair<register_master_node_result, std::string> emscr_SendFunds_bridge::regi
 	if (!controller_ptr)
 	{ // exception will be thrown if oom but JIC, since null ptrs are somehow legal in WASM
 		send_app_handler__error_msg("Out of memory (heap vals container)");
-		return std::make_pair(result, args_string);
-
+		// return std::make_pair(result, args_string);
 	}
 	(*controller_ptr).set__authenticate_fn([]() -> void { // authenticate_fn - this is not guaranteed to be called but it will be if requireAuthentication is true
 		EM_ASM_(
@@ -775,6 +1029,8 @@ std::pair<register_master_node_result, std::string> emscr_SendFunds_bridge::regi
 			req_params_ss.str().c_str());
 	});
 	(*controller_ptr).handle();
+
+	std::cout << "exiting from register_funds" << std::endl;
 }
 //
 void emscr_SendFunds_bridge::send_cb__authentication(const string &args_string)

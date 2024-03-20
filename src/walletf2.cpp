@@ -41,3 +41,23 @@ bool parse_priority(const std::string &arg, uint32_t &priority)
 //     return s;
 //   return (*i).second.c_str();
 // }
+
+	int getNetworkType(const std::string &netTypeStr)
+	{
+		static const std::unordered_map<std::string, cryptonote::network_type> networkTypeMap = {
+			{"MAINNET", cryptonote::MAINNET},
+			{"TESTNET", cryptonote::TESTNET},
+			{"DEVNET", cryptonote::DEVNET},
+			{"FAKECHAIN", cryptonote::FAKECHAIN},
+			{"UNDEFINED", cryptonote::UNDEFINED}};
+
+		auto it = networkTypeMap.find(netTypeStr);
+		if (it != networkTypeMap.end())
+		{
+			return static_cast<int>(it->second);
+		}
+		else
+		{
+			return -1; 
+		}
+	}

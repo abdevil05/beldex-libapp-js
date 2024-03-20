@@ -376,49 +376,50 @@ class BeldexLibAppBridgeClass extends MyMoneroCoreBridgeEssentialsClass
 		};
 		const args = 
 		{
-			fromWallet_didFailToInitialize: fn_args.fromWallet_didFailToInitialize,
-			fromWallet_didFailToBoot: fn_args.fromWallet_didFailToBoot,
-			fromWallet_needsImport: fn_args.fromWallet_needsImport,
-			requireAuthentication: fn_args.requireAuthentication,
-			//
-			destinations: fn_args.destinations,
-			hasPickedAContact: fn_args.hasPickedAContact,
-			resolvedAddress_fieldIsVisible: fn_args.resolvedAddress_fieldIsVisible,
-			manuallyEnteredPaymentID_fieldIsVisible: fn_args.manuallyEnteredPaymentID_fieldIsVisible,
-			resolvedPaymentID_fieldIsVisible: fn_args.resolvedPaymentID_fieldIsVisible,
+			final_args:fn_args.arrayValue,
+			// fromWallet_didFailToInitialize: fn_args.fromWallet_didFailToInitialize,
+			// fromWallet_didFailToBoot: fn_args.fromWallet_didFailToBoot,
+			// fromWallet_needsImport: fn_args.fromWallet_needsImport,
+			// requireAuthentication: fn_args.requireAuthentication,
+			// //
+			// destinations: fn_args.destinations,
+			// hasPickedAContact: fn_args.hasPickedAContact,
+			// resolvedAddress_fieldIsVisible: fn_args.resolvedAddress_fieldIsVisible,
+			// manuallyEnteredPaymentID_fieldIsVisible: fn_args.manuallyEnteredPaymentID_fieldIsVisible,
+			// resolvedPaymentID_fieldIsVisible: fn_args.resolvedPaymentID_fieldIsVisible,
 
-			is_sweeping: fn_args.is_sweeping,
-			from_address_string: fn_args.from_address_string,
-			sec_viewKey_string: fn_args.sec_viewKey_string,
-			sec_spendKey_string: fn_args.sec_spendKey_string,
-			pub_spendKey_string: fn_args.pub_spendKey_string,
-			priority: "" + fn_args.priority,
+			// is_sweeping: fn_args.is_sweeping,
+			// from_address_string: fn_args.from_address_string,
+			// sec_viewKey_string: fn_args.sec_viewKey_string,
+			// sec_spendKey_string: fn_args.sec_spendKey_string,
+			// pub_spendKey_string: fn_args.pub_spendKey_string,
+			// priority: "" + fn_args.priority,
 			nettype_string: nettype_utils.nettype_to_API_string(fn_args.nettype)
 		};
-		if (typeof fn_args.contact_payment_id !== 'undefined' && fn_args.contact_payment_id !== null && fn_args.contact_payment_id !== "") {
-			args.contact_payment_id = fn_args.contact_payment_id;
-		}
-		if (typeof fn_args.cached_OAResolved_address !== 'undefined' && fn_args.cached_OAResolved_address !== null && fn_args.cached_OAResolved_address !== "") {
-			args.cached_OAResolved_address = fn_args.cached_OAResolved_address;
-		}
-		if (typeof fn_args.contact_hasOpenAliasAddress !== 'undefined' && fn_args.contact_hasOpenAliasAddress !== null && fn_args.contact_hasOpenAliasAddress !== "") {
-			args.contact_hasOpenAliasAddress = fn_args.contact_hasOpenAliasAddress;
-		}
-		if (typeof fn_args.contact_address !== 'undefined' && fn_args.contact_address !== null && fn_args.contact_address !== "") {
-			args.contact_address = fn_args.contact_address;
-		}
-		if (typeof fn_args.enteredAddressValue !== 'undefined' && fn_args.enteredAddressValue !== null && fn_args.enteredAddressValue !== "") {
-			args.enteredAddressValue = fn_args.enteredAddressValue;
-		}
-		if (typeof fn_args.resolvedAddress !== 'undefined' && fn_args.resolvedAddress !== null && fn_args.resolvedAddress !== "") {
-			args.resolvedAddress = fn_args.resolvedAddress;
-		}
-		if (typeof fn_args.manuallyEnteredPaymentID !== 'undefined' && fn_args.manuallyEnteredPaymentID !== null && fn_args.manuallyEnteredPaymentID !== "") {
-			args.manuallyEnteredPaymentID = fn_args.manuallyEnteredPaymentID;
-		}
-		if (typeof fn_args.resolvedPaymentID !== 'undefined' && fn_args.resolvedPaymentID !== null && fn_args.resolvedPaymentID !== "") {
-			args.resolvedPaymentID = fn_args.resolvedPaymentID;
-		}
+		// if (typeof fn_args.contact_payment_id !== 'undefined' && fn_args.contact_payment_id !== null && fn_args.contact_payment_id !== "") {
+		// 	args.contact_payment_id = fn_args.contact_payment_id;
+		// }
+		// if (typeof fn_args.cached_OAResolved_address !== 'undefined' && fn_args.cached_OAResolved_address !== null && fn_args.cached_OAResolved_address !== "") {
+		// 	args.cached_OAResolved_address = fn_args.cached_OAResolved_address;
+		// }
+		// if (typeof fn_args.contact_hasOpenAliasAddress !== 'undefined' && fn_args.contact_hasOpenAliasAddress !== null && fn_args.contact_hasOpenAliasAddress !== "") {
+		// 	args.contact_hasOpenAliasAddress = fn_args.contact_hasOpenAliasAddress;
+		// }
+		// if (typeof fn_args.contact_address !== 'undefined' && fn_args.contact_address !== null && fn_args.contact_address !== "") {
+		// 	args.contact_address = fn_args.contact_address;
+		// }
+		// if (typeof fn_args.enteredAddressValue !== 'undefined' && fn_args.enteredAddressValue !== null && fn_args.enteredAddressValue !== "") {
+		// 	args.enteredAddressValue = fn_args.enteredAddressValue;
+		// }
+		// if (typeof fn_args.resolvedAddress !== 'undefined' && fn_args.resolvedAddress !== null && fn_args.resolvedAddress !== "") {
+		// 	args.resolvedAddress = fn_args.resolvedAddress;
+		// }
+		// if (typeof fn_args.manuallyEnteredPaymentID !== 'undefined' && fn_args.manuallyEnteredPaymentID !== null && fn_args.manuallyEnteredPaymentID !== "") {
+		// 	args.manuallyEnteredPaymentID = fn_args.manuallyEnteredPaymentID;
+		// }
+		// if (typeof fn_args.resolvedPaymentID !== 'undefined' && fn_args.resolvedPaymentID !== null && fn_args.resolvedPaymentID !== "") {
+		// 	args.resolvedPaymentID = fn_args.resolvedPaymentID;
+		// }
 		const args_str = JSON.stringify(args, null, '')
 		const ret_string = this.Module.register_funds(args_str);
 		const ret = JSON.parse(ret_string);

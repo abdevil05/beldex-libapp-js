@@ -15,15 +15,14 @@
 #include "pending_tx.h"
 #include "tx_construction_data.h"
 
-
 // constexpr std::array<const char *const, 6> allowed_priority_strings = {{"default", "unimportant", "normal", "elevated", "priority", "flash"}};
 
 // static const char *tr(const char *str) { return i18n_translate(str, "emscr_SendFunds_bridge::register_funds"); }
 // static std::map<std::string, std::string> i18n_entries;
 using pending_tx = wallet::pending_tx;
-bool parse_priority          (const std::string& arg, uint32_t& priority);
+bool parse_priority(const std::string &arg, uint32_t &priority);
+int getNetworkType(const std::string& netTypeStr);
 inline std::map<std::string, std::string> i18n_entries;
-
 
 enum struct register_master_node_result_status
 {
@@ -55,7 +54,7 @@ struct register_master_node_result
   register_master_node_result_status status;
   std::string msg;
   pending_tx ptx;
-  std::string args_string;
+  // std::string args_string;
 };
 
 // bool parse_priority(const std::string &arg, uint32_t &priority)
@@ -92,8 +91,46 @@ inline const char *i18n_translate(const char *s, const std::string &context)
   return (*i).second.c_str();
 }
 
-static cryptonote::network_type m_nettype;
-static cryptonote::network_type nettype() { return m_nettype; }
+// class Cryptonote {
+// private:
+//     cryptonote::network_type m_nettype;
+//     std::map<std::string, cryptonote::network_type> nettype_map = {
+//         {"MAINNET", cryptonote::MAINNET},
+//         {"TESTNET", cryptonote::TESTNET},
+//         {"DEVNET", cryptonote::DEVNET},
+//         {"FAKECHAIN", cryptonote::FAKECHAIN},
+//         {"UNDEFINED", cryptonote::UNDEFINED}
+//     };
+
+// public:
+//     Cryptonote() {
+//         // Default constructor
+//     }
+
+//     void setNettype(const std::string& nettype_string) {
+//         auto it = nettype_map.find(nettype_string);
+//         if (it != nettype_map.end()) {
+//             m_nettype = it->second;
+//         } else {
+//             m_nettype = cryptonote::UNDEFINED; // Default value for undefined strings
+//         }
+//     }
+
+//     inline cryptonote::network_type nettype() { 
+//         return m_nettype; 
+//     }
+// };
+
+// Cryptonote cn;
+
+// cn.setNettype(nettype_string);
+// int net_value = static_cast<int>(cn.nettype());
+
+
+
+// inline cryptonote::network_type m_nettype;
+// inline cryptonote::network_type nettype() { return m_nettype; }
+
 
 struct tx_construction_data
 {
