@@ -428,7 +428,7 @@ std::string emscr_SendFunds_bridge::register_funds(const string &args_string)
 	// }
 
 	// std::cout << "args_string in register_funds after parsing :" << args_string << std::endl;
-    // std::cout << "args_string in register_funds as original form :" << args_string << std::endl;
+	// std::cout << "args_string in register_funds as original form :" << args_string << std::endl;
 
 	// std::istringstream iss(args_string);
 
@@ -559,7 +559,6 @@ std::string emscr_SendFunds_bridge::register_funds(const string &args_string)
 	uint64_t staking_requirement = 0;
 	master_nodes::contributor_args_t contributor_args = {};
 
-
 	std::vector<std::string> args;
 	{
 		std::cout << "Enter into contributor_args_t " << std::endl;
@@ -604,9 +603,9 @@ std::string emscr_SendFunds_bridge::register_funds(const string &args_string)
 		{
 			std::cout << "Hard fork version not available" << std::endl;
 		}
-       cryptonote::network_type networkType = static_cast<cryptonote::network_type>(networkTypeInt);
+		cryptonote::network_type networkType = static_cast<cryptonote::network_type>(networkTypeInt);
 
-	   contributor_args = master_nodes::convert_registration_args(networkType, args, staking_requirement, *hf_version);
+		contributor_args = master_nodes::convert_registration_args(networkType, args, staking_requirement, *hf_version);
 
 		if (!contributor_args.success)
 		{
@@ -726,32 +725,27 @@ std::string emscr_SendFunds_bridge::register_funds(const string &args_string)
 	// Concatenating portionsForOperatorValue
 	oss << "portions_for_operator=" << portionsForOperatorValue;
 
-	// Convert the ostringstream object to a string
-	std::string concatenatedString = oss.str();
+	try
+	{
+		master_nodes::validate_contributor_args(*hf_version, contributor_args);
+		master_nodes::validate_contributor_args_signature(contributor_args, expiration_timestamp, master_node_key, signature);
+	}
+	catch (const master_nodes::invalid_contributions &e)
+	{
+		result.status = register_master_node_result_status::validate_contributor_args_fail;
+		// result.msg = e.what();
+		// return result;
+	}
 
-	return concatenatedString;
-
-	// try
-	// {
-	// 	master_nodes::validate_contributor_args(*hf_version, contributor_args);
-	// 	master_nodes::validate_contributor_args_signature(contributor_args, expiration_timestamp, master_node_key, signature);
-	// }
-	// catch (const master_nodes::invalid_contributions &e)
-	// {
-	// 	result.status = register_master_node_result_status::validate_contributor_args_fail;
-	// 	// result.msg = e.what();
-	// 	return result;
-	// }
-
-	// std::vector<uint8_t> extra;
-	// add_master_node_contributor_to_tx_extra(extra, address);
-	// add_master_node_pubkey_to_tx_extra(extra, master_node_key);
-	// if (!add_master_node_register_to_tx_extra(extra, contributor_args.addresses, contributor_args.portions_for_operator, contributor_args.portions, expiration_timestamp, signature))
-	// {
-	// 	result.status = register_master_node_result_status::master_node_register_serialize_to_tx_extra_fail;
-	// 	// result.msg = tr("Failed to serialize master node registration tx extra");
-	// 	return result;
-	// }
+	std::vector<uint8_t> extra;
+	add_master_node_contributor_to_tx_extra(extra, address);
+	add_master_node_pubkey_to_tx_extra(extra, master_node_key);
+	if (!add_master_node_register_to_tx_extra(extra, contributor_args.addresses, contributor_args.portions_for_operator, contributor_args.portions, expiration_timestamp, signature))
+	{
+		result.status = register_master_node_result_status::master_node_register_serialize_to_tx_extra_fail;
+		// result.msg = tr("Failed to serialize master node registration tx extra");
+		// return result;
+	}
 
 	// Check master is able to be registered
 	//
@@ -762,74 +756,100 @@ std::string emscr_SendFunds_bridge::register_funds(const string &args_string)
 	// 	{
 	// 		result.status = register_master_node_result_status::master_node_list_query_failed;
 	// 		// result.msg = ERR_MSG_NETWORK_VERSION_QUERY_FAILED;
-	// 		return result;
+	// 		// return result;
 	// 	}
 
 	// 	if (response.size() >= 1)
 	// 	{
 	// 		result.status = register_master_node_result_status::master_node_cannot_reregister;
 	// 		// result.msg = tr("This master node is already registered");
-	// 		return result;
+	// 		// return result;
 	// 	}
 	// }
 
 	//
 	// Create Register Transaction
-	//
-	// {
-	// 	uint64_t amount_payable_by_operator = 0;
-	// 	{
-	// 		const uint64_t DUST = MAX_NUMBER_OF_CONTRIBUTORS;
-	// 		uint64_t amount_left = staking_requirement;
-	// 		for (size_t i = 0; i < contributor_args.portions.size(); i++)
-	// 		{
-	// 			uint64_t amount = master_nodes::portions_to_amount(staking_requirement, contributor_args.portions[i]);
-	// 			if (i == 0)
-	// 				amount_payable_by_operator += amount;
-	// 			amount_left -= amount;
-	// 		}
 
-	// 		if (amount_left <= DUST)
-	// 			amount_payable_by_operator += amount_left;
-	// 	}
+	{
+		uint64_t amount_payable_by_operator = 0;
+		{
+			const uint64_t DUST = MAX_NUMBER_OF_CONTRIBUTORS;
+			uint64_t amount_left = staking_requirement;
+			for (size_t i = 0; i < contributor_args.portions.size(); i++)
+			{
+				uint64_t amount = master_nodes::portions_to_amount(staking_requirement, contributor_args.portions[i]);
+				if (i == 0)
+					amount_payable_by_operator += amount;
+				amount_left -= amount;
+			}
 
-	// 	std::vector<cryptonote::tx_destination_entry> dsts;
-	// 	cryptonote::tx_destination_entry de;
-	// 	de.addr = address;
-	// 	de.is_subaddress = false;
-	// 	de.amount = amount_payable_by_operator;
-	// 	dsts.push_back(de);
+			if (amount_left <= DUST)
+				amount_payable_by_operator += amount_left;
+		}
 
-	// 	try
-	// 	{
-	// 		// NOTE(beldex): We know the address should always be a primary address and has no payment id, so we can ignore the subaddress/payment id field here
-	// 		cryptonote::address_parse_info dest = {};
-	// 		dest.address = address;
+		std::cout << "Amount payable by operator: " << amount_payable_by_operator << std::endl;
 
-	// 		beldex_construct_tx_params tx_params = tools::wallet2::construct_params(*hf_version, txtype::stake, priority);
-	// 		std::cout << "Before create_transactions_2 " << std::endl;
+		std::vector<cryptonote::tx_destination_entry> dsts;
+		cryptonote::tx_destination_entry de;
+		de.addr = address;
+		de.is_subaddress = false;
+		de.amount = amount_payable_by_operator;
+		dsts.push_back(de);
 
-	// 		auto ptx_vector = create_transactions_2(dsts, CRYPTONOTE_DEFAULT_TX_MIXIN, 0 /* unlock_time */, priority, extra, subaddr_account, subaddr_indices, tx_params);
-	// 		std::cout << "After create_transactions_2 " << std::endl;
-	// 		if (ptx_vector.size() == 1)
-	// 		{
-	// 			result.status = register_master_node_result_status::success;
-	// 			result.ptx = ptx_vector[0];
-	// 		}
-	// 		else
-	// 		{
-	// 			result.status = register_master_node_result_status::too_many_transactions_constructed;
-	// 			// result.msg = ERR_MSG_TOO_MANY_TXS_CONSTRUCTED;
-	// 		}
-	// 	}
-	// 	catch (const std::exception &e)
-	// 	{
-	// 		result.status = register_master_node_result_status::exception_thrown;
-	// 		// result.msg = ERR_MSG_EXCEPTION_THROWN;
-	// 		// result.msg += e.what();
-	// 		return result;
-	// 	}
-	// }
+		// for (const auto &entry : dsts)
+		// {
+		// 	std::cout << "Address: " << entry.addr.to_string() << ", Amount: " << entry.amount << ", Is subaddress: " << entry.is_subaddress << std::endl;
+		// }
+
+		oss << "Amount payable by operator:=" << amount_payable_by_operator << std::endl;
+
+		oss << "dsts=[";
+		for (size_t i = 0; i < dsts.size(); ++i)
+		{
+			oss << "("
+				<< "addr: " << dsts[i].addr.m_spend_public_key << "," << dsts[i].addr.m_view_public_key << "), "
+				<< "is_subaddress: " << (dsts[i].is_subaddress ? "true" : "false") << ", "
+				<< "amount: " << dsts[i].amount;
+			if (i != dsts.size() - 1)
+				oss << ",";
+		}
+		oss << "]";
+
+		// Convert the ostringstream object to a string
+		std::string concatenatedString = oss.str();
+
+		return concatenatedString;
+
+		// try
+		// {
+		// 	// NOTE(beldex): We know the address should always be a primary address and has no payment id, so we can ignore the subaddress/payment id field here
+		// 	cryptonote::address_parse_info dest = {};
+		// 	dest.address = address;
+
+		// 	beldex_construct_tx_params tx_params = tools::wallet2::construct_params(*hf_version, txtype::stake, priority);
+		// 	std::cout << "Before create_transactions_2 " << std::endl;
+
+		// 	auto ptx_vector = create_transactions_2(dsts, CRYPTONOTE_DEFAULT_TX_MIXIN, 0 /* unlock_time */, priority, extra, subaddr_account, subaddr_indices, tx_params);
+		// 	std::cout << "After create_transactions_2 " << std::endl;
+		// 	if (ptx_vector.size() == 1)
+		// 	{
+		// 		result.status = register_master_node_result_status::success;
+		// 		result.ptx = ptx_vector[0];
+		// 	}
+		// 	else
+		// 	{
+		// 		result.status = register_master_node_result_status::too_many_transactions_constructed;
+		// 		// result.msg = ERR_MSG_TOO_MANY_TXS_CONSTRUCTED;
+		// 	}
+		// }
+		// catch (const std::exception &e)
+		// {
+		// 	result.status = register_master_node_result_status::exception_thrown;
+		// 	// result.msg = ERR_MSG_EXCEPTION_THROWN;
+		// 	// result.msg += e.what();
+		// 	return result;
+		// }
+	}
 
 	// assert(result.status != register_master_node_result_status::invalid);
 	// result.args_string = args_string;

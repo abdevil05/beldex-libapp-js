@@ -876,41 +876,41 @@ function dbg(text) {
 }
 
 var ASM_CONSTS = {
- 376640: $0 => {
+ 377760: $0 => {
   const JS__req_params_string = Module.UTF8ToString($0);
   const JS__req_params = JSON.parse(JS__req_params_string);
   Module.fromCpp__SendFundsFormSubmission__error(JS__req_params);
  },
- 376821: $0 => {
+ 377941: $0 => {
   const JS__req_params_string = Module.UTF8ToString($0);
   const JS__req_params = JSON.parse(JS__req_params_string);
   Module.fromCpp__SendFundsFormSubmission__success(JS__req_params);
  },
- 377004: $0 => {
+ 378124: $0 => {
   const JS__req_params_string = Module.UTF8ToString($0);
   const JS__req_params = JSON.parse(JS__req_params_string);
   Module.fromCpp__SendFundsFormSubmission__status_update(JS__req_params);
  },
- 377193: () => {
+ 378313: () => {
   Module.fromCpp__SendFundsFormSubmission__willBeginSending({});
  },
- 377260: () => {
+ 378380: () => {
   Module.fromCpp__SendFundsFormSubmission__canceled({});
  },
- 377319: () => {
+ 378439: () => {
   Module.fromCpp__SendFundsFormSubmission__authenticate();
  },
- 377380: $0 => {
+ 378500: $0 => {
   const JS__req_params_string = Module.UTF8ToString($0);
   const JS__req_params = JSON.parse(JS__req_params_string);
   Module.fromCpp__SendFundsFormSubmission__get_unspent_outs(JS__req_params);
  },
- 377572: $0 => {
+ 378692: $0 => {
   const JS__req_params_string = Module.UTF8ToString($0);
   const JS__req_params = JSON.parse(JS__req_params_string);
   Module.fromCpp__SendFundsFormSubmission__get_random_outs(JS__req_params);
  },
- 377763: $0 => {
+ 378883: $0 => {
   const JS__req_params_string = Module.UTF8ToString($0);
   const JS__req_params = JSON.parse(JS__req_params_string);
   Module.fromCpp__SendFundsFormSubmission__submit_raw_tx(JS__req_params);
