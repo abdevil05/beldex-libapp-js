@@ -37,17 +37,13 @@
 #include <string>
 #include <boost/optional.hpp>
 
-#include "cryptonote_config.h" 
+#include "cryptonote_config.h"
 #include "SendFundsFormSubmissionController.hpp"
 #include "walletf2.h"
 #include "tx_construction_data.h"
 #include "cryptonote_tx_utils.h"
 #include "cryptonote_basic.h"
 #include "master_node_list.h"
-
-
-
-
 
 //
 namespace emscr_SendFunds_bridge
@@ -78,8 +74,15 @@ namespace emscr_SendFunds_bridge
 		boost::optional<CreateTransactionErrorCode> createTx_errCode,
 		// for display / information purposes on errCode=needMoreMoneyThanFound during step1:
 		boost::optional<uint64_t> spendable_balance,
-		boost::optional<uint64_t> required_balance
-	);
+		boost::optional<uint64_t> required_balance);
+
+	void send_app_handler__error_code1(
+		RegisterFunds::PreSuccessTerminalCode code,
+		boost::optional<string> msg,
+		boost::optional<CreateTransactionErrorCode> createTx_errCode,
+		// for display / information purposes on errCode=needMoreMoneyThanFound during step1:
+		boost::optional<uint64_t> spendable_balance,
+		boost::optional<uint64_t> required_balance);
 }
 
 #endif /* serial_bridge_index_hpp */
