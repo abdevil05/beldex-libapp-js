@@ -68,7 +68,7 @@ using namespace emscr_SendFunds_bridge;
 // Runtime - Memory
 //
 SendFunds::FormSubmissionController *controller_ptr = NULL;
-RegisterFunds::FormSubmissionController *register_controller_ptr = NULL;
+// RegisterFunds::FormSubmissionController *controller_ptr = NULL;
 //
 // To-JS fn decls - Status updates and routine completions
 static void send_app_handler__status_update(ProcessStep code)
@@ -131,34 +131,34 @@ void emscr_SendFunds_bridge::send_app_handler__error_code(
 	send_app_handler__error_json(ret_json_from_root(root));
 }
 
-void emscr_SendFunds_bridge::send_app_handler__error_code1(
-	RegisterFunds::PreSuccessTerminalCode code,
-	boost::optional<string> msg,
-	boost::optional<CreateTransactionErrorCode> createTx_errCode,
-	// for display / information purposes on errCode=needMoreMoneyThanFound during step1:
-	boost::optional<uint64_t> spendable_balance,
-	boost::optional<uint64_t> required_balance)
-{
-	boost::property_tree::ptree root;
-	root.put(ret_json_key__any__err_code(), code);
-	if (msg)
-	{
-		root.put(ret_json_key__any__err_msg(), std::move(*msg));
-	}
-	if (createTx_errCode != boost::none)
-	{
-		root.put("createTx_errCode", createTx_errCode);
-	}
-	if (spendable_balance != boost::none)
-	{
-		root.put(ret_json_key__send__spendable_balance(), std::move(RetVals_Transforms::str_from(*spendable_balance)));
-	}
-	if (required_balance != boost::none)
-	{
-		root.put(ret_json_key__send__required_balance(), std::move(RetVals_Transforms::str_from(*required_balance)));
-	}
-	send_app_handler__error_json(ret_json_from_root(root));
-}
+// void emscr_SendFunds_bridge::send_app_handler__error_code1(
+// 	RegisterFunds::PreSuccessTerminalCode code,
+// 	boost::optional<string> msg,
+// 	boost::optional<CreateTransactionErrorCode> createTx_errCode,
+// 	// for display / information purposes on errCode=needMoreMoneyThanFound during step1:
+// 	boost::optional<uint64_t> spendable_balance,
+// 	boost::optional<uint64_t> required_balance)
+// {
+// 	boost::property_tree::ptree root;
+// 	root.put(ret_json_key__any__err_code(), code);
+// 	if (msg)
+// 	{
+// 		root.put(ret_json_key__any__err_msg(), std::move(*msg));
+// 	}
+// 	if (createTx_errCode != boost::none)
+// 	{
+// 		root.put("createTx_errCode", createTx_errCode);
+// 	}
+// 	if (spendable_balance != boost::none)
+// 	{
+// 		root.put(ret_json_key__send__spendable_balance(), std::move(RetVals_Transforms::str_from(*spendable_balance)));
+// 	}
+// 	if (required_balance != boost::none)
+// 	{
+// 		root.put(ret_json_key__send__required_balance(), std::move(RetVals_Transforms::str_from(*required_balance)));
+// 	}
+// 	send_app_handler__error_json(ret_json_from_root(root));
+// }
 //
 void send_app_handler__success(const Success_RetVals &success_retVals)
 {
@@ -223,68 +223,7 @@ void send_app_handler__success(const Success_RetVals &success_retVals)
 	controller_ptr = NULL;
 }
 
-void send_app_handler__success(const RegisterFunds::Success_RetVals &success_retVals)
-{
-	boost::property_tree::ptree root;
-	root.put(ret_json_key__send__used_fee(), std::move(RetVals_Transforms::str_from(success_retVals.used_fee)));
-	root.put(ret_json_key__send__total_sent(), std::move(RetVals_Transforms::str_from(success_retVals.total_sent)));
-	root.put(ret_json_key__send__mixin(), success_retVals.mixin); // this is a uint32 so it can be sent in JSON
-	if (success_retVals.final_payment_id)
-	{
-		root.put(ret_json_key__send__final_payment_id(), std::move(*(success_retVals.final_payment_id)));
-	}
-	root.put(ret_json_key__send__serialized_signed_tx(), std::move(success_retVals.signed_serialized_tx_string));
-	root.put(ret_json_key__send__tx_hash(), std::move(success_retVals.tx_hash_string));
-	root.put(ret_json_key__send__tx_key(), std::move(success_retVals.tx_key_string));
-	root.put(ret_json_key__send__tx_pub_key(), std::move(success_retVals.tx_pub_key_string));
 
-	string target_address_str;
-	size_t nTargAddrs = success_retVals.target_addresses.size();
-	for (size_t i = 0; i < nTargAddrs; ++i)
-	{
-		if (nTargAddrs == 1)
-		{
-			target_address_str += success_retVals.target_addresses[i];
-		}
-		else
-		{
-			if (i == 0)
-			{
-				target_address_str += "[";
-			}
-
-			target_address_str += success_retVals.target_addresses[i];
-
-			if (i < nTargAddrs - 1)
-			{
-				target_address_str += ", ";
-			}
-			else
-			{
-				target_address_str += "]";
-			}
-		}
-	}
-
-	root.put("target_address", target_address_str);
-	root.put("final_total_wo_fee", std::move(RetVals_Transforms::str_from(success_retVals.final_total_wo_fee)));
-	root.put("isXMRAddressIntegrated", std::move(RetVals_Transforms::str_from(success_retVals.isXMRAddressIntegrated)));
-	if (success_retVals.integratedAddressPIDForDisplay)
-	{
-		root.put("integratedAddressPIDForDisplay", std::move(*(success_retVals.integratedAddressPIDForDisplay)));
-	}
-	//
-	EM_ASM_(
-		{
-			const JS__req_params_string = Module.UTF8ToString($0);
-			const JS__req_params = JSON.parse(JS__req_params_string);
-			Module.fromCpp__SendFundsFormSubmission__success(JS__req_params); // Module must implement this!
-		},
-		ret_json_from_root(root).c_str());
-	THROW_WALLET_EXCEPTION_IF(register_controller_ptr == NULL, error::wallet_internal_error, "expected non-NULL controller_ptr");
-	delete register_controller_ptr; // having finished
-	register_controller_ptr = NULL;
-}
 
 //
 // From-JS function decls
@@ -314,6 +253,12 @@ void emscr_SendFunds_bridge::send_funds(const string &args_string)
 		dest_addrs.emplace_back(dest.second.get<string>("to_address"));
 		dest_amounts.emplace_back(dest.second.get<string>("send_amount"));
 	}
+
+	// Extract the new parameter from JSON
+    std::vector<std::string> extra_param;
+    for (const auto &item : json_root.get_child("extra_param_key")) {
+        extra_param.emplace_back(item.second.get_value<std::string>());
+    }
 
 	Parameters parameters{
 		json_root.get<bool>("fromWallet_didFailToInitialize"),
@@ -382,7 +327,9 @@ void emscr_SendFunds_bridge::send_funds(const string &args_string)
 		[](SendFunds::Success_RetVals retVals) -> void // success_fn
 		{
 			send_app_handler__success(retVals);
-		}};
+		},
+		std::move(extra_param)
+		};
 
 	controller_ptr = new SendFunds::FormSubmissionController{parameters}; // heap alloc
 	if (!controller_ptr)
@@ -471,21 +418,21 @@ std::string emscr_SendFunds_bridge::register_funds(const string &args_string)
 
 	// std::cout << "args_string in send_funds after parsing :" << args_string << std::endl;
 
-	// const auto &final_args = json_root.get_child("final_args");
-	const auto &final_args = json_root.get<vector<string> >("final_args");
+	const auto &final_args = json_root.get_child("final_args");
+	// const auto &final_args = json_root.get<vector<string> >("final_args");
 	
 	std::vector<std::string> local_args;
 	local_args.reserve(final_args.size());
 
-	// for (const auto &arg : final_args)
-	// {
-	// 	local_args.emplace_back(arg.second.get_value<string>());
-	// }
-
 	for (const auto &arg : final_args)
 	{
-		local_args.emplace_back(arg); // No need to access .second or use get_value<string>()
-	}
+		local_args.emplace_back(arg.second.get_value<string>());
+	};
+
+	// for (const auto &arg : final_args)
+	// {
+	// 	local_args.emplace_back(arg); // No need to access .second or use get_value<string>()
+	// }
 
 	if (!local_args.empty())
 	{
@@ -686,37 +633,37 @@ std::string emscr_SendFunds_bridge::register_funds(const string &args_string)
 		}
 	}
 
-	std::map<std::string, cryptonote::account_public_address> addressNames;
+	// std::map<std::string, cryptonote::account_public_address> addressNames;
 
-	std::ostringstream oss;
-	oss << "timestamp=\"" << local_args[timestamp_index] << "\", "
-		<< "master_node_pubkey=\"" << local_args[key_index] << "\", "
-		<< "signature=\"" << local_args[signature_index] << "\"";
+	// std::ostringstream oss;
+	// oss << "timestamp=\"" << local_args[timestamp_index] << "\", "
+	// 	<< "master_node_pubkey=\"" << local_args[key_index] << "\", "
+	// 	<< "signature=\"" << local_args[signature_index] << "\"";
 
-	// Concatenating addressesValue
-	oss << "addresses=[";
-	for (size_t i = 0; i < addressesValue.size(); ++i)
-	{
-		std::string name = "address" + std::to_string(i + 1);
-		addressNames[name] = addressesValue[i];
-		oss << "(" << name << ": " << addressesValue[i].m_spend_public_key << "," << addressesValue[i].m_view_public_key << ")";
-		if (i != addressesValue.size() - 1)
-			oss << ",";
-	}
-	oss << "], ";
+	// // Concatenating addressesValue
+	// oss << "addresses=[";
+	// for (size_t i = 0; i < addressesValue.size(); ++i)
+	// {
+	// 	std::string name = "address" + std::to_string(i + 1);
+	// 	addressNames[name] = addressesValue[i];
+	// 	oss << "(" << name << ": " << addressesValue[i].m_spend_public_key << "," << addressesValue[i].m_view_public_key << ")";
+	// 	if (i != addressesValue.size() - 1)
+	// 		oss << ",";
+	// }
+	// oss << "], ";
 
-	// Concatenating portionsValue
-	oss << "portions=[";
-	for (size_t i = 0; i < portionsValue.size(); ++i)
-	{
-		oss << portionsValue[i];
-		if (i != portionsValue.size() - 1)
-			oss << ",";
-	}
-	oss << "], ";
+	// // Concatenating portionsValue
+	// oss << "portions=[";
+	// for (size_t i = 0; i < portionsValue.size(); ++i)
+	// {
+	// 	oss << portionsValue[i];
+	// 	if (i != portionsValue.size() - 1)
+	// 		oss << ",";
+	// }
+	// oss << "], ";
 
-	// Concatenating portionsForOperatorValue
-	oss << "portions_for_operator=" << portionsForOperatorValue;
+	// // Concatenating portionsForOperatorValue
+	// oss << "portions_for_operator=" << portionsForOperatorValue;
 
 	try
 	{
@@ -743,87 +690,87 @@ std::string emscr_SendFunds_bridge::register_funds(const string &args_string)
 	//
 	// Create Register Transaction
 
-	std::string concatenatedString;
-	{
-		uint64_t amount_payable_by_operator = 0;
-		{
-			const uint64_t DUST = MAX_NUMBER_OF_CONTRIBUTORS;
-			uint64_t amount_left = staking_requirement;
-			for (size_t i = 0; i < contributor_args.portions.size(); i++)
-			{
-				uint64_t amount = master_nodes::portions_to_amount(staking_requirement, contributor_args.portions[i]);
-				if (i == 0)
-					amount_payable_by_operator += amount;
-				amount_left -= amount;
-			}
+	// std::string concatenatedString;
+	// {
+	// 	uint64_t amount_payable_by_operator = 0;
+	// 	{
+	// 		const uint64_t DUST = MAX_NUMBER_OF_CONTRIBUTORS;
+	// 		uint64_t amount_left = staking_requirement;
+	// 		for (size_t i = 0; i < contributor_args.portions.size(); i++)
+	// 		{
+	// 			uint64_t amount = master_nodes::portions_to_amount(staking_requirement, contributor_args.portions[i]);
+	// 			if (i == 0)
+	// 				amount_payable_by_operator += amount;
+	// 			amount_left -= amount;
+	// 		}
 
-			if (amount_left <= DUST)
-				amount_payable_by_operator += amount_left;
-		}
+	// 		if (amount_left <= DUST)
+	// 			amount_payable_by_operator += amount_left;
+	// 	}
 
-		std::cout << "Amount payable by operator: " << amount_payable_by_operator << std::endl;
+	// 	std::cout << "Amount payable by operator: " << amount_payable_by_operator << std::endl;
 
-		std::vector<cryptonote::tx_destination_entry> dsts;
-		cryptonote::tx_destination_entry de;
-		de.addr = address;
-		de.is_subaddress = false;
-		de.amount = amount_payable_by_operator;
-		dsts.push_back(de);
+	// 	std::vector<cryptonote::tx_destination_entry> dsts;
+	// 	cryptonote::tx_destination_entry de;
+	// 	de.addr = address;
+	// 	de.is_subaddress = false;
+	// 	de.amount = amount_payable_by_operator;
+	// 	dsts.push_back(de);
 
-		// for (const auto &entry : dsts)
-		// {
-		// 	std::cout << "Address: " << entry.addr.to_string() << ", Amount: " << entry.amount << ", Is subaddress: " << entry.is_subaddress << std::endl;
-		// }
+	// 	// for (const auto &entry : dsts)
+	// 	// {
+	// 	// 	std::cout << "Address: " << entry.addr.to_string() << ", Amount: " << entry.amount << ", Is subaddress: " << entry.is_subaddress << std::endl;
+	// 	// }
 
-		oss << "Amount payable by operator:=" << amount_payable_by_operator << std::endl;
+	// 	oss << "Amount payable by operator:=" << amount_payable_by_operator << std::endl;
 
-		oss << "dsts=[";
-		for (size_t i = 0; i < dsts.size(); ++i)
-		{
-			oss << "("
-				<< "addr: " << dsts[i].addr.m_spend_public_key << "," << dsts[i].addr.m_view_public_key << "), "
-				<< "is_subaddress: " << (dsts[i].is_subaddress ? "true" : "false") << ", "
-				<< "amount: " << dsts[i].amount;
-			if (i != dsts.size() - 1)
-				oss << ",";
-		}
-		oss << "]";
+	// 	oss << "dsts=[";
+	// 	for (size_t i = 0; i < dsts.size(); ++i)
+	// 	{
+	// 		oss << "("
+	// 			<< "addr: " << dsts[i].addr.m_spend_public_key << "," << dsts[i].addr.m_view_public_key << "), "
+	// 			<< "is_subaddress: " << (dsts[i].is_subaddress ? "true" : "false") << ", "
+	// 			<< "amount: " << dsts[i].amount;
+	// 		if (i != dsts.size() - 1)
+	// 			oss << ",";
+	// 	}
+	// 	oss << "]";
 
-		// Convert the ostringstream object to a string
-		std::string concatenatedString = oss.str();
+	// 	// Convert the ostringstream object to a string
+	// 	std::string concatenatedString = oss.str();
 
-		// return concatenatedString;
+	// 	// return concatenatedString;
 
-		// try
-		// {
-		// 	// NOTE(beldex): We know the address should always be a primary address and has no payment id, so we can ignore the subaddress/payment id field here
-		// 	cryptonote::address_parse_info dest = {};
-		// 	dest.address = address;
+	// 	// try
+	// 	// {
+	// 	// 	// NOTE(beldex): We know the address should always be a primary address and has no payment id, so we can ignore the subaddress/payment id field here
+	// 	// 	cryptonote::address_parse_info dest = {};
+	// 	// 	dest.address = address;
 
-		// 	beldex_construct_tx_params tx_params = tools::wallet2::construct_params(*hf_version, txtype::stake, priority);
-		// 	std::cout << "Before create_transactions_2 " << std::endl;
+	// 	// 	beldex_construct_tx_params tx_params = tools::wallet2::construct_params(*hf_version, txtype::stake, priority);
+	// 	// 	std::cout << "Before create_transactions_2 " << std::endl;
 
-		// 	auto ptx_vector = create_transactions_2(dsts, CRYPTONOTE_DEFAULT_TX_MIXIN, 0 /* unlock_time */, priority, extra, subaddr_account, subaddr_indices, tx_params);
-		// 	std::cout << "After create_transactions_2 " << std::endl;
-		// 	if (ptx_vector.size() == 1)
-		// 	{
-		// 		result.status = register_master_node_result_status::success;
-		// 		result.ptx = ptx_vector[0];
-		// 	}
-		// 	else
-		// 	{
-		// 		result.status = register_master_node_result_status::too_many_transactions_constructed;
-		// 		// result.msg = ERR_MSG_TOO_MANY_TXS_CONSTRUCTED;
-		// 	}
-		// }
-		// catch (const std::exception &e)
-		// {
-		// 	result.status = register_master_node_result_status::exception_thrown;
-		// 	// result.msg = ERR_MSG_EXCEPTION_THROWN;
-		// 	// result.msg += e.what();
-		// 	return result;
-		// }
-	}
+	// 	// 	auto ptx_vector = create_transactions_2(dsts, CRYPTONOTE_DEFAULT_TX_MIXIN, 0 /* unlock_time */, priority, extra, subaddr_account, subaddr_indices, tx_params);
+	// 	// 	std::cout << "After create_transactions_2 " << std::endl;
+	// 	// 	if (ptx_vector.size() == 1)
+	// 	// 	{
+	// 	// 		result.status = register_master_node_result_status::success;
+	// 	// 		result.ptx = ptx_vector[0];
+	// 	// 	}
+	// 	// 	else
+	// 	// 	{
+	// 	// 		result.status = register_master_node_result_status::too_many_transactions_constructed;
+	// 	// 		// result.msg = ERR_MSG_TOO_MANY_TXS_CONSTRUCTED;
+	// 	// 	}
+	// 	// }
+	// 	// catch (const std::exception &e)
+	// 	// {
+	// 	// 	result.status = register_master_node_result_status::exception_thrown;
+	// 	// 	// result.msg = ERR_MSG_EXCEPTION_THROWN;
+	// 	// 	// result.msg += e.what();
+	// 	// 	return result;
+	// 	// }
+	// }
 
 	const auto &destinations = json_root.get_child("destinations");
 	vector<string> dest_addrs, dest_amounts;
@@ -846,9 +793,9 @@ std::string emscr_SendFunds_bridge::register_funds(const string &args_string)
 	//     }
 	// }
 
-	RegisterFunds::Parameters parameters{
+	    Parameters parameters{
 		// json_root.get<vector<string> >("final_args"),
-		json_root.get_child("final_args").get_value<vector<string> >(),
+		// json_root.get_child("final_args").get_value<vector<string> >(),
 		json_root.get<bool>("fromWallet_didFailToInitialize"),
 		json_root.get<bool>("fromWallet_didFailToBoot"),
 		json_root.get<bool>("fromWallet_needsImport"),
@@ -882,21 +829,22 @@ std::string emscr_SendFunds_bridge::register_funds(const string &args_string)
 		//
 		json_root.get_optional<string>("resolvedPaymentID"),
 		json_root.get<bool>("resolvedPaymentID_fieldIsVisible"),
+		// json_root.get<std::string>("extra_param"),
 		// json_root.get<vector<string>>("final_args"),
 		//
 		[]( // preSuccess_nonTerminal_validationMessageUpdate_fn
-			RegisterFunds::ProcessStep step) -> void
+			ProcessStep step) -> void
 		{
-			send_app_handler__status_update(static_cast<ProcessStep>(step));
+			send_app_handler__status_update(step);
 		},
 		[]( // failure_fn
-			RegisterFunds::PreSuccessTerminalCode code,
+			SendFunds::PreSuccessTerminalCode code,
 			boost::optional<string> msg,
 			boost::optional<CreateTransactionErrorCode> createTx_errCode,
 			boost::optional<uint64_t> spendable_balance,
 			boost::optional<uint64_t> required_balance) -> void
 		{
-			send_app_handler__error_code1(code, msg, createTx_errCode, spendable_balance, required_balance);
+			send_app_handler__error_code(code, msg, createTx_errCode, spendable_balance, required_balance);
 		},
 		[]() -> void { // preSuccess_passedValidation_willBeginSending
 			EM_ASM_(
@@ -910,48 +858,48 @@ std::string emscr_SendFunds_bridge::register_funds(const string &args_string)
 				{
 					Module.fromCpp__SendFundsFormSubmission__canceled({}); // Module must implement this!
 				});
-			THROW_WALLET_EXCEPTION_IF(register_controller_ptr == NULL, error::wallet_internal_error, "expected non-NULL controller_ptr");
-			delete register_controller_ptr; // having finished
-			register_controller_ptr = NULL;
+			THROW_WALLET_EXCEPTION_IF(controller_ptr == NULL, error::wallet_internal_error, "expected non-NULL controller_ptr");
+			delete controller_ptr; // having finished
+			controller_ptr = NULL;
 		},
-		[](RegisterFunds::Success_RetVals retVals) -> void // success_fn
+		[](SendFunds::Success_RetVals retVals) -> void // success_fn
 		{
 			send_app_handler__success(retVals);
 		}};
 
 	// Check if final_args exists in the JSON
-	boost::optional<boost::property_tree::ptree &> final_args_node = json_root.get_child_optional("final_args");
+	// boost::optional<boost::property_tree::ptree &> final_args_node = json_root.get_child_optional("final_args");
 
-	if (final_args_node)
-	{
-		// Iterate over the child nodes of "final_args"
-		for (const auto &arg : *final_args_node)
-		{
-			// Append the value of each child node to the final_args vector
-			parameters.final_args.push_back(arg.second.get_value<std::string>());
-		}
-	}
-	else
-	{
-		std::cout << "Json object not constructed correctly:" << std::endl;
-		// Handle case when final_args is not present in the JSON
-		// For example, print a warning message or set a default value for final_args
-	}
+	// if (final_args_node)
+	// {
+	// 	// Iterate over the child nodes of "final_args"
+	// 	for (const auto &arg : *final_args_node)
+	// 	{
+	// 		// Append the value of each child node to the final_args vector
+	// 		parameters.final_args.push_back(arg.second.get_value<std::string>());
+	// 	}
+	// }
+	// else
+	// {
+	// 	std::cout << "Json object not constructed correctly:" << std::endl;
+	// 	// Handle case when final_args is not present in the JSON
+	// 	// For example, print a warning message or set a default value for final_args
+	// }
 
-	register_controller_ptr = new RegisterFunds::FormSubmissionController{parameters}; // heap alloc
+	controller_ptr = new FormSubmissionController{parameters}; // heap alloc
 
-	if (!register_controller_ptr)
+	if (!controller_ptr)
 	{ // exception will be thrown if oom but JIC, since null ptrs are somehow legal in WASM
 		send_app_handler__error_msg("Out of memory (heap vals container)");
 		// return std::make_pair(result, args_string);
 	}
-	(*register_controller_ptr).set__authenticate_fn([]() -> void { // authenticate_fn - this is not guaranteed to be called but it will be if requireAuthentication is true
+	(*controller_ptr).set__authenticate_fn([]() -> void { // authenticate_fn - this is not guaranteed to be called but it will be if requireAuthentication is true
 		EM_ASM_(
 			{
 				Module.fromCpp__SendFundsFormSubmission__authenticate(); // Module must implement this!
 			});
 	});
-	(*register_controller_ptr).set__get_unspent_outs_fn([](LightwalletAPI_Req_GetUnspentOuts req_params) -> void { // get_unspent_outs
+	(*controller_ptr).set__get_unspent_outs_fn([](LightwalletAPI_Req_GetUnspentOuts req_params) -> void { // get_unspent_outs
 		boost::property_tree::ptree req_params_root;
 		req_params_root.put("address", req_params.address);
 		req_params_root.put("view_key", req_params.view_key);
@@ -969,7 +917,7 @@ std::string emscr_SendFunds_bridge::register_funds(const string &args_string)
 			},
 			req_params_ss.str().c_str());
 	});
-	(*register_controller_ptr).set__get_random_outs_fn([](LightwalletAPI_Req_GetRandomOuts req_params) -> void { // get_random_outs
+	(*controller_ptr).set__get_random_outs_fn([](LightwalletAPI_Req_GetRandomOuts req_params) -> void { // get_random_outs
 		boost::property_tree::ptree req_params_root;
 		boost::property_tree::ptree amounts_ptree;
 		BOOST_FOREACH (const string &amount_string, req_params.amounts)
@@ -990,7 +938,7 @@ std::string emscr_SendFunds_bridge::register_funds(const string &args_string)
 			},
 			req_params_ss.str().c_str());
 	});
-	(*register_controller_ptr).set__submit_raw_tx_fn([](LightwalletAPI_Req_SubmitRawTx req_params) -> void { // submit_raw_tx
+	(*controller_ptr).set__submit_raw_tx_fn([](LightwalletAPI_Req_SubmitRawTx req_params) -> void { // submit_raw_tx
 		boost::property_tree::ptree req_params_root;
 		boost::property_tree::ptree amounts_ptree;
 		req_params_root.put("address", std::move(req_params.address));
@@ -1008,7 +956,7 @@ std::string emscr_SendFunds_bridge::register_funds(const string &args_string)
 			},
 			req_params_ss.str().c_str());
 	});
-	(*register_controller_ptr).handle();
+	(*controller_ptr).handle();
 
 	std::cout << "exiting from register_funds" << std::endl;
 }

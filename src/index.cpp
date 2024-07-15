@@ -145,6 +145,7 @@ string send_funds(const string &args_string)
         return serial_bridge_utils::error_ret_json_from_message(e.what());
     }
 }
+
 std::string register_funds(const std::string &args_string)
 {
     try {
@@ -163,6 +164,24 @@ std::string register_funds(const std::string &args_string)
         return "{\"error\": \"" + std::string(e.what()) + "\"}";
     }
 }
+// std::string register_funds(const std::string &args_string)
+// {
+//     try {
+//         std::cout<<"Enter into register_funds of index.cpp"<<std::endl;
+        
+//         std::string parsed_args = emscr_SendFunds_bridge::register_funds(args_string);
+//         // if (result.status != register_master_node_result_status::success) {
+//         //     // Handle the failure case
+//         //     return serial_bridge_utils::error_ret_json_from_message("Registration failed: " + args_string);
+//         // }
+
+//         std::string json_result = "{\"data_returned_from_register_funds\": \"" + parsed_args + "\"}";
+
+//        return  json_result;  // Assuming successful registration returns an argumented JSON object
+//     } catch (std::exception &e) {
+//         return "{\"error\": \"" + std::string(e.what()) + "\"}";
+//     }
+// }
 
 string send_cb__authentication(const string &args_string)
 {
